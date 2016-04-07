@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Online Calculator</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />  
+
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+
+  <script src="assets/js/jquery-1.11.3.min.js"></script>
+  <script>
+  
+	var operationElements = [];
+	var currentElement = "";
+	
+	var currentOperationView = "";
+	var currentResult = "0";
+	
+	var latChIsOperator = false;
+	
+	function operate ()
+	{
+		operationElements.push (currentElement);
+		currentElement = "";
+		
+		//alert (operationElements);
+		
+		$.post ('operation.php', {'op[]': operationElements}, function (data) {
+			//alert (data);
+			var jsonData = $.parseJSON(data);
+			
+			if (jsonData["luck"] == "win")
+			{
+				alert ("luck");
+			}
+			
+			operationElements = [];
+			latChIsOperator = false;
+			currentElement = jsonData["result"];
+			currentOperationView = currentElement;			
+			$('#calculator-screen').val (jsonData["result"]);
+		});
+	}
+	
+	function resetCalc ()
+	{
+		currentElement = "";
+		operationElements = [];
+		currentResult = 0;
+		currentOperationView = "";
+		$('#calculator-screen').val (currentOperationView);
+	}
+	
+	function fixNewOperator (ch)
+	{
+		if (!latChIsOperator)
+		{
+			operationElements.push (currentElement);
+			operationElements.push (ch);
+			currentOperationView += " " + ch +" ";
+			currentElement = "";
+			latChIsOperator = true;
+			return;
+		}
+		
+		currentOperationView = currentOperationView.substr (0, currentOperationView.length - 3);
+		currentOperationView += " " + ch +" ";		
+		operationElements[operationElements.length - 1] = ch;
+	}
+	
+	function appendChar (ch)
+	{
+		switch (ch)
+		{
+			case '+':
+			case '-':
+			case '*':
+			case '/':
+			fixNewOperator (ch);
+			break;
+			
+			default:
+			currentElement += ch;
+			currentOperationView += ch;
+			latChIsOperator = false;
+			break;
+		}
+		
+		$('#calculator-screen').val (currentOperationView);
+	}
+	
+  </script>
+</head>
+<body>
+
+  <div class="container">
+    <h1 class="text-center">Online Calculator</h1> 
+      <div class="row">
+        <div class="col-xs-6 input-group input-group-lg center">
+          <input id="calculator-screen" type="text" disabled="disabled" class="form-control" placeholder="0">
+        </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+    <div class="col-md-12 center">
+        <button onclick="appendChar ('7');" class="btn btn-default bg nobdr">7</button>
+        <button onclick="appendChar ('8');" class="btn btn-default bg nobdr">8</button>
+        <button onclick="appendChar ('9');" class="btn btn-default bg nobdr">9</button>
+        <button onclick="appendChar ('/');" class="btn btn-info">/</button>
+      </div>
+      <div class="col-md-12 center">
+        <button onclick="appendChar ('4');" class="btn btn-default bg nobdr">4</button>
+        <button onclick="appendChar ('5');" class="btn btn-default bg nobdr">5</button>
+        <button onclick="appendChar ('6');" class="btn btn-default bg nobdr">6</button>
+        <button onclick="appendChar ('*');" class="btn btn-info">*</button>
+      </div>
+      <div class="col-md-12 center">
+        <button onclick="appendChar ('1');" class="btn btn-default bg nobdr">1</button>
+        <button onclick="appendChar ('2');" class="btn btn-default bg nobdr">2</button>
+        <button onclick="appendChar ('3');" class="btn btn-default bg nobdr">3</button>
+        <button onclick="appendChar ('-');" class="btn btn-info">-</button>
+      </div>
+      <div class="col-md-12 center">
+        <button onclick="appendChar ('0');" class="btn btn-default bg nobdr">0</button>
+        <button onclick="resetCalc ();" class="btn btn-danger">reset</button>
+        <button onclick="operate ();" class="btn btn-primary">=</button>
+        <button onclick="appendChar ('+');" class="btn btn-info">+</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
